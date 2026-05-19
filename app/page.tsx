@@ -108,6 +108,15 @@ const homeCopy = {
           ],
         },
       ],
+      skills: [
+        { label: "UI", value: 7 },
+        { label: "UX", value: 9 },
+        { label: "User research", value: 7 },
+        { label: "AI", value: 8 },
+        { label: "Vibe coding", value: 7.5 },
+        { label: "HTML/CSS", value: 5 },
+        { label: "Next.js", value: 6.5 },
+      ],
     },
   },
   cn: {
@@ -188,6 +197,15 @@ const homeCopy = {
           ],
         },
       ],
+      skills: [
+        { label: "界面设计", value: 7 },
+        { label: "体验设计", value: 9 },
+        { label: "用户研究", value: 7 },
+        { label: "人工智能", value: 8 },
+        { label: "氛围编程", value: 7.5 },
+        { label: "HTML/CSS", value: 5 },
+        { label: "Next.js", value: 6.5 },
+      ],
     },
   },
 } satisfies Record<
@@ -207,6 +225,10 @@ const homeCopy = {
         period: string;
         icon: string;
         bullets: string[];
+      }>;
+      skills: Array<{
+        label: string;
+        value: number;
       }>;
     };
   }

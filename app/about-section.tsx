@@ -48,6 +48,10 @@ type AboutSectionProps = {
     icon: string;
     bullets: string[];
   }>;
+  skills: Array<{
+    label: string;
+    value: number;
+  }>;
 };
 
 export function AboutSection({
@@ -56,6 +60,7 @@ export function AboutSection({
   strengthsTitle,
   strengths,
   experience,
+  skills,
 }: AboutSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeCard, setActiveCard] = useState(0);
@@ -74,6 +79,10 @@ export function AboutSection({
       id: "experience",
       content: <ExperienceCard experience={experience} />,
     },
+    {
+      id: "skills",
+      content: <SkillsCard skills={skills} />,
+    },
   ];
 
   useEffect(() => {
@@ -87,8 +96,12 @@ export function AboutSection({
       }
 
       const rect = sectionRef.current.getBoundingClientRect();
+      const scrollableDistance = Math.max(
+        sectionRef.current.offsetHeight - window.innerHeight,
+        window.innerHeight,
+      );
       const progress = Math.min(
-        Math.max(-rect.top / window.innerHeight, 0),
+        Math.max(-rect.top / scrollableDistance, 0),
         1,
       );
       const nextCard = Math.min(
@@ -142,6 +155,171 @@ export function AboutSection({
   );
 }
 
+function SkillsCard({ skills }: Pick<AboutSectionProps, "skills">) {
+  const center = 381;
+  const centerY = 343.5;
+  const maxRadius = 195;
+  const levels = [0.24, 0.43, 0.62, 0.8, 1];
+
+  const points = skills.map((skill, index) => {
+    const angle = -Math.PI / 2 + (index * Math.PI * 2) / skills.length;
+    const radius = maxRadius * (skill.value / 10);
+
+    return {
+      ...skill,
+      x: center + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+      labelX: center + Math.cos(angle) * (maxRadius + 58),
+      labelY: centerY + Math.sin(angle) * (maxRadius + 58),
+      axisX: center + Math.cos(angle) * maxRadius,
+      axisY: centerY + Math.sin(angle) * maxRadius,
+    };
+  });
+
+  const polygon = points.map((point) => `${point.x},${point.y}`).join(" ");
+
+  const levelPolygons = levels.map((level) =>
+    skills
+      .map((_, index) => {
+        const angle = -Math.PI / 2 + (index * Math.PI * 2) / skills.length;
+        const radius = maxRadius * level;
+
+        return `${center + Math.cos(angle) * radius},${
+          centerY + Math.sin(angle) * radius
+        }`;
+      })
+      .join(" "),
+  );
+
+  return (
+    <div className="grid h-full place-items-center rounded-[21px] bg-white text-black lg:min-h-[687px]">
+      <svg
+        className="h-auto w-full max-w-[620px]"
+        viewBox="0 0 762 687"
+        role="img"
+        aria-label="Skill radar chart"
+      >
+        <g>
+          {levelPolygons.map((levelPolygon) => (
+            <polygon
+              key={levelPolygon}
+              points={levelPolygon}
+              fill="none"
+              stroke="rgba(0,0,0,0.14)"
+              strokeWidth="1"
+            />
+          ))}
+
+          {points.map((point) => (
+            <line
+              key={point.label}
+              x1={center}
+              y1={centerY}
+              x2={point.axisX}
+              y2={point.axisY}
+              stroke="rgba(0,0,0,0.12)"
+              strokeWidth="1"
+            />
+          ))}
+
+          <polygon
+            points={polygon}
+            fill="rgba(122, 117, 255, 0.16)"
+            stroke="#726cff"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+
+          {points.map((point) => (
+            <circle
+              key={`${point.label}-point`}
+              cx={point.x}
+              cy={point.y}
+              r="7"
+              fill="#726cff"
+              stroke="#ffffff"
+              strokeWidth="4"
+            />
+          ))}
+
+          {points.map((point) => {
+            const tooltipWidth = point.label.length > 9 ? 148 : 124;
+            const tooltipHeight = 58;
+            const tooltipX = Math.min(
+              Math.max(point.x + 18, 18),
+              762 - tooltipWidth - 18,
+            );
+            const tooltipY = Math.min(
+              Math.max(point.y - 48, 18),
+              687 - tooltipHeight - 18,
+            );
+
+            return (
+              <g
+                key={`${point.label}-hotspot`}
+                className="group cursor-pointer outline-none"
+                tabIndex={0}
+                role="button"
+                aria-label={`${point.label}: ${point.value} out of 10`}
+              >
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="18"
+                  fill="transparent"
+                />
+                <g className="pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus:opacity-100">
+                  <rect
+                    x={tooltipX}
+                    y={tooltipY}
+                    width={tooltipWidth}
+                    height={tooltipHeight}
+                    rx="8"
+                    fill="#7a05ff"
+                  />
+                  <text
+                    x={tooltipX + 13}
+                    y={tooltipY + 24}
+                    className="fill-white font-sans text-[15px] font-bold"
+                  >
+                    {point.label}
+                  </text>
+                  <text
+                    x={tooltipX + 13}
+                    y={tooltipY + 45}
+                    className="fill-white font-sans text-[15px] font-bold"
+                  >
+                    {point.value}
+                  </text>
+                </g>
+              </g>
+            );
+          })}
+
+          {points.map((point) => (
+            <text
+              key={`${point.label}-label`}
+              x={point.labelX}
+              y={point.labelY}
+              textAnchor={
+                Math.abs(point.labelX - center) < 10
+                  ? "middle"
+                  : point.labelX > center
+                    ? "start"
+                    : "end"
+              }
+              dominantBaseline="middle"
+              className="fill-black font-sans text-[16px] font-semibold"
+            >
+              {point.label}
+            </text>
+          ))}
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 function CardStack({
   cards,
   activeCard,
@@ -167,10 +345,11 @@ function CardStack({
               y: isPrevious ? "-28%" : isFuture ? "100vh" : "0%",
               scale: isPrevious ? 0.92 : 1,
               opacity: isPrevious ? 0.35 : isFuture ? 1 : 1,
-              filter: isPrevious ? "blur(1px)" : "blur(0px)",
+              filter: isPrevious ? "blur(4px)" : "blur(0px)",
               zIndex: isPrevious ? index : isActive ? 20 + index : 10 + index,
             }}
             transition={cardTransition}
+            style={{ backfaceVisibility: "hidden", transformPerspective: 1200 }}
           >
             {card.content}
           </motion.div>
